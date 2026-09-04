@@ -1,0 +1,8 @@
+# The web server itself uses only the Python standard library.
+# These are needed to unpickle the pretrained models in data/models/.
+# The classifiers were saved with scikit-learn 0.22.1; the NEU RandomForest
+# uses a tree layout that changed in scikit-learn 1.3, so it only loads on
+# scikit-learn < 1.3, which in turn needs numpy < 2.
+scikit-learn==1.2.2
+numpy<2
+scipy<1.13
