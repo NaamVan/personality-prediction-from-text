@@ -1,0 +1,444 @@
+<title>HEXACO-60 Self-Test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:#f1f0f6; --card:#ffffff; --fg:#1c1b24; --muted:#635f72;
+    --accent:#5b52d6; --accent-soft:#5b52d61f; --border:#e3e1ec;
+    --track:#e8e6f0; --ok:#2f9366; --warn:#c1802b; --low:#bb5147;
+    --serif:'Newsreader',Georgia,'Times New Roman',serif;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  :root:not([data-theme="light"]) { }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+    --bg:#131219; --card:#1c1b24; --fg:#e9e7f0; --muted:#9c98ac;
+    --accent:#9d94ff; --accent-soft:#9d94ff26; --border:#2c2a37;
+    --track:#26242f; --ok:#5cc796; --warn:#e0a655; --low:#e3796e;
+  } }
+  :root[data-theme="dark"]{
+    --bg:#131219; --card:#1c1b24; --fg:#e9e7f0; --muted:#9c98ac;
+    --accent:#9d94ff; --accent-soft:#9d94ff26; --border:#2c2a37;
+    --track:#26242f; --ok:#5cc796; --warn:#e0a655; --low:#e3796e;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:var(--sans); font-size:15px; line-height:1.55;
+    background:var(--bg); color:var(--fg); -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:800px; margin:0 auto; padding:34px 20px 80px; }
+  .eyebrow { font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--accent); font-weight:600; margin:0 0 8px; }
+  h1 { font-family:var(--serif); font-weight:500; font-size:34px; line-height:1.1;
+    letter-spacing:-.01em; margin:0 0 6px; text-wrap:balance; }
+  h1 em { font-style:italic; }
+  .sub { color:var(--muted); margin:0 0 22px; max-width:60ch; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:14px;
+    padding:22px; margin-bottom:18px; }
+  .directions { font-size:14px; }
+  .directions b { font-weight:600; }
+  .scale-legend { display:flex; flex-wrap:wrap; gap:8px 18px; color:var(--muted);
+    font-size:13px; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); }
+  .scale-legend b { color:var(--fg); font-variant-numeric:tabular-nums; }
+  select, button { font-family:var(--sans); font-size:14px; }
+  select { padding:8px 11px; border:1px solid var(--border); border-radius:9px;
+    background:var(--card); color:var(--fg); }
+  button { background:var(--accent); color:#fff; border:0; border-radius:10px;
+    padding:12px 22px; font-weight:600; cursor:pointer; transition:filter .15s; }
+  button:hover:not(:disabled){ filter:brightness(1.06); }
+  button.ghost { background:transparent; color:var(--accent); border:1px solid var(--border); }
+  button.ghost:hover { border-color:var(--accent); }
+  button:disabled { opacity:.55; cursor:default; }
+  button:focus-visible, .opts label:focus-within, select:focus-visible {
+    outline:2px solid var(--accent); outline-offset:2px; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .bar { position:sticky; top:0; z-index:5; background:var(--bg);
+    padding:12px 0 10px; margin-bottom:4px; }
+  .progress { height:8px; background:var(--track); border-radius:99px; overflow:hidden; }
+  .progress > div { height:100%; width:0; background:var(--accent); transition:width .3s ease; }
+  .pmeta { font-size:12.5px; color:var(--muted); margin-top:7px;
+    font-variant-numeric:tabular-nums; }
+  .item { padding:16px 0; border-bottom:1px solid var(--border); }
+  .item:last-child { border-bottom:0; }
+  .item .q { margin-bottom:11px; }
+  .item .n { color:var(--accent); font-variant-numeric:tabular-nums; font-weight:600; margin-right:8px; }
+  .opts { display:flex; gap:6px; flex-wrap:wrap; }
+  .opts label { flex:1 1 0; min-width:62px; text-align:center; border:1px solid var(--border);
+    border-radius:9px; padding:9px 4px; cursor:pointer; color:var(--muted);
+    user-select:none; transition:.12s; }
+  .opts label:hover { border-color:var(--accent); color:var(--fg); }
+  .opts input { position:absolute; opacity:0; width:0; height:0; }
+  .opts label:has(input:checked){ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .opts .num { font-weight:700; display:block; font-size:16px; font-variant-numeric:tabular-nums; }
+  .opts .cap { font-size:10.5px; letter-spacing:.02em; display:block; margin-top:2px; }
+  .item.missing { outline:2px solid var(--low); outline-offset:5px; border-radius:9px; }
+  .err { color:var(--low); margin:14px 0 4px; font-weight:500; }
+  /* results */
+  h2 { font-family:var(--serif); font-weight:500; font-size:24px; margin:0 0 4px; }
+  .grid { display:grid; grid-template-columns:1.1fr .9fr; gap:26px; align-items:start; }
+  @media (max-width:660px){ .grid{ grid-template-columns:1fr; } }
+  .factor { margin-bottom:18px; }
+  .factor .head { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+  .factor .name { font-weight:600; }
+  .factor .name small { color:var(--muted); font-weight:400; }
+  .factor .score { font-variant-numeric:tabular-nums; font-weight:700; font-size:17px; }
+  .factor .score small { color:var(--muted); font-weight:400; font-size:12px; }
+  .factor .track { height:11px; background:var(--track); border-radius:99px;
+    margin:7px 0 5px; position:relative; overflow:visible; }
+  .factor .fill { height:100%; border-radius:99px; transition:width .6s cubic-bezier(.2,.7,.2,1); }
+  .factor .norm { position:absolute; top:-4px; width:2px; height:19px; background:var(--fg);
+    opacity:.45; border-radius:2px; }
+  .band { font-size:12.5px; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .band b { font-weight:600; }
+  details { margin-top:8px; }
+  details summary { cursor:pointer; color:var(--accent); font-size:13px; width:fit-content; }
+  .facet { display:grid; grid-template-columns:1fr auto; gap:3px 12px; font-size:13px;
+    color:var(--muted); padding:4px 0; border-bottom:1px dotted var(--border); }
+  .facet:last-child { border-bottom:0; }
+  .facet .fs { font-variant-numeric:tabular-nums; color:var(--fg); font-weight:500; }
+  .radar-wrap { position:sticky; top:16px; }
+  .hint { color:var(--muted); font-size:12.5px; margin-top:18px; line-height:1.5; }
+  .credit { color:var(--muted); font-size:11.5px; margin-top:10px; line-height:1.5; }
+  [hidden]{ display:none !important; }
+  a { color:var(--accent); }
+  @media (prefers-reduced-motion: reduce){ * { transition:none !important; } }
+  @media print { .bar, #restart, #print, #fillRandom, #clear { display:none !important; } }
+</style>
+
+<div class="wrap">
+  <section id="intro-head">
+    <p class="eyebrow">HEXACO-PI-R · 60 items</p>
+    <h1>A portrait in <em>six</em> dimensions</h1>
+    <p class="sub">The HEXACO self-report inventory measures six broad personality factors —
+      including Honesty-Humility, the trait the Big Five leaves out. Rate 60 statements as you
+      honestly are, and see where you fall against a college-sample norm.</p>
+  </section>
+
+  <!-- ===== QUESTIONNAIRE ===== -->
+  <section id="quiz">
+    <div class="card directions">
+      <b>Directions.</b> Read each statement and decide how much you agree or disagree with it,
+      describing yourself as you genuinely are — not as you'd like to be. There are no right answers.
+      <div class="scale-legend">
+        <span><b>1</b> strongly disagree</span><span><b>2</b> disagree</span>
+        <span><b>3</b> neutral</span><span><b>4</b> agree</span><span><b>5</b> strongly agree</span>
+      </div>
+      <div class="row" style="margin-top:16px">
+        <label>Compare against&nbsp;
+          <select id="normGroup">
+            <option value="total">college sample — everyone</option>
+            <option value="women">college sample — women</option>
+            <option value="men">college sample — men</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="bar">
+      <div class="progress"><div id="pfill"></div></div>
+      <div class="pmeta"><span id="pcount">0</span> of 60 answered</div>
+    </div>
+
+    <div class="card"><div id="items"></div></div>
+
+    <div id="quizErr" class="err" hidden></div>
+    <div class="row">
+      <button id="score">See my results</button>
+      <button id="fillRandom" class="ghost" title="Fill unanswered items at random, to preview the results">Preview with sample answers</button>
+      <button id="clear" class="ghost">Clear</button>
+    </div>
+  </section>
+
+  <!-- ===== RESULTS ===== -->
+  <section id="results" hidden>
+    <div class="card">
+      <p class="eyebrow">Your results</p>
+      <h2>Six factors</h2>
+      <p class="sub" style="margin-bottom:20px">Each score is the mean of its ten items (1–5).
+        The tick marks the norm-group average.</p>
+      <div class="grid">
+        <div id="factors"></div>
+        <div class="radar-wrap"><canvas id="radar" height="300"></canvas></div>
+      </div>
+      <p class="hint">Reverse-keyed items are recoded before averaging, exactly per the HEXACO-60
+        scoring keys. Bands compare you to the selected group using its mean and standard deviation.
+        Facet scales are short (2–3 items) and are rough indicators only, not reliable stand-alone
+        measures.</p>
+      <div class="row" style="margin-top:16px">
+        <button id="restart" class="ghost">Back to the test</button>
+        <button id="print" class="ghost">Print / save as PDF</button>
+      </div>
+      <p class="credit">Instrument: HEXACO-PI-R © Kibeom Lee &amp; Michael C. Ashton (hexaco.org),
+        provided for research/educational use. This is an unofficial scorer for self-exploration,
+        not a clinical or diagnostic assessment.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+const ITEMS = [
+ "I would be quite bored by a visit to an art gallery.",
+ "I plan ahead and organize things, to avoid scrambling at the last minute.",
+ "I rarely hold a grudge, even against people who have badly wronged me.",
+ "I feel reasonably satisfied with myself overall.",
+ "I would feel afraid if I had to travel in bad weather conditions.",
+ "I wouldn't use flattery to get a raise or promotion at work, even if I thought it would succeed.",
+ "I'm interested in learning about the history and politics of other countries.",
+ "I often push myself very hard when trying to achieve a goal.",
+ "People sometimes tell me that I am too critical of others.",
+ "I rarely express my opinions in group meetings.",
+ "I sometimes can't help worrying about little things.",
+ "If I knew that I could never get caught, I would be willing to steal a million dollars.",
+ "I would enjoy creating a work of art, such as a novel, a song, or a painting.",
+ "When working on something, I don't pay much attention to small details.",
+ "People sometimes tell me that I'm too stubborn.",
+ "I prefer jobs that involve active social interaction to those that involve working alone.",
+ "When I suffer from a painful experience, I need someone to make me feel comfortable.",
+ "Having a lot of money is not especially important to me.",
+ "I think that paying attention to radical ideas is a waste of time.",
+ "I make decisions based on the feeling of the moment rather than on careful thought.",
+ "People think of me as someone who has a quick temper.",
+ "On most days, I feel cheerful and optimistic.",
+ "I feel like crying when I see other people crying.",
+ "I think that I am entitled to more respect than the average person is.",
+ "If I had the opportunity, I would like to attend a classical music concert.",
+ "When working, I sometimes have difficulties due to being disorganized.",
+ "My attitude toward people who have treated me badly is “forgive and forget”.",
+ "I feel that I am an unpopular person.",
+ "When it comes to physical danger, I am very fearful.",
+ "If I want something from someone, I will laugh at that person's worst jokes.",
+ "I've never really enjoyed looking through an encyclopedia.",
+ "I do only the minimum amount of work needed to get by.",
+ "I tend to be lenient in judging other people.",
+ "In social situations, I'm usually the one who makes the first move.",
+ "I worry a lot less than most people do.",
+ "I would never accept a bribe, even if it were very large.",
+ "People have often told me that I have a good imagination.",
+ "I always try to be accurate in my work, even at the expense of time.",
+ "I am usually quite flexible in my opinions when people disagree with me.",
+ "The first thing that I always do in a new place is to make friends.",
+ "I can handle difficult situations without needing emotional support from anyone else.",
+ "I would get a lot of pleasure from owning expensive luxury goods.",
+ "I like people who have unconventional views.",
+ "I make a lot of mistakes because I don't think before I act.",
+ "Most people tend to get angry more quickly than I do.",
+ "Most people are more upbeat and dynamic than I generally am.",
+ "I feel strong emotions when someone close to me is going away for a long time.",
+ "I want people to know that I am an important person of high status.",
+ "I don't think of myself as the artistic or creative type.",
+ "People often call me a perfectionist.",
+ "Even when people make a lot of mistakes, I rarely say anything negative.",
+ "I sometimes feel that I am a worthless person.",
+ "Even in an emergency I wouldn't feel like panicking.",
+ "I wouldn't pretend to like someone just to get that person to do favors for me.",
+ "I find it boring to discuss philosophy.",
+ "I prefer to do whatever comes to mind, rather than stick to a plan.",
+ "When people tell me that I'm wrong, my first reaction is to argue with them.",
+ "When I'm in a group of people, I'm often the one who speaks on behalf of the group.",
+ "I remain unemotional even in situations where most people get very sentimental.",
+ "I'd be tempted to use counterfeit money, if I were sure I could get away with it."
+];
+
+const FACETS = {
+ "Sincerity":["6","30R","54"], "Fairness":["12R","36","60R"],
+ "Greed-Avoidance":["18","42R"], "Modesty":["24R","48R"],
+ "Fearfulness":["5","29","53R"], "Anxiety":["11","35R"],
+ "Dependence":["17","41R"], "Sentimentality":["23","47","59R"],
+ "Social Self-Esteem":["4","28R","52R"], "Social Boldness":["10R","34","58"],
+ "Sociability":["16","40"], "Liveliness":["22","46R"],
+ "Forgiveness":["3","27"], "Gentleness":["9R","33","51"],
+ "Flexibility":["15R","39","57R"], "Patience":["21R","45"],
+ "Organization":["2","26R"], "Diligence":["8","32R"],
+ "Perfectionism":["14R","38","50"], "Prudence":["20R","44R","56R"],
+ "Aesthetic Appreciation":["1R","25"], "Inquisitiveness":["7","31R"],
+ "Creativity":["13","37","49R"], "Unconventionality":["19R","43","55R"]
+};
+
+const FACTORS = [
+ {code:"H", name:"Honesty-Humility",    facets:["Sincerity","Fairness","Greed-Avoidance","Modesty"]},
+ {code:"E", name:"Emotionality",        facets:["Fearfulness","Anxiety","Dependence","Sentimentality"]},
+ {code:"X", name:"Extraversion",        facets:["Social Self-Esteem","Social Boldness","Sociability","Liveliness"]},
+ {code:"A", name:"Agreeableness",       facets:["Forgiveness","Gentleness","Flexibility","Patience"]},
+ {code:"C", name:"Conscientiousness",   facets:["Organization","Diligence","Perfectionism","Prudence"]},
+ {code:"O", name:"Openness to Experience", facets:["Aesthetic Appreciation","Inquisitiveness","Creativity","Unconventionality"]}
+];
+
+const NORMS = {
+ total:{ "Honesty-Humility":[3.23,.66], "Emotionality":[3.36,.70], "Extraversion":[3.51,.62],
+   "Agreeableness":[3.10,.63], "Conscientiousness":[3.47,.61], "Openness to Experience":[3.49,.67] },
+ women:{ "Honesty-Humility":[3.31,.64], "Emotionality":[3.66,.55], "Extraversion":[3.48,.64],
+   "Agreeableness":[3.06,.59], "Conscientiousness":[3.54,.58], "Openness to Experience":[3.52,.64] },
+ men:{   "Honesty-Humility":[3.09,.69], "Emotionality":[2.87,.64], "Extraversion":[3.54,.60],
+   "Agreeableness":[3.16,.68], "Conscientiousness":[3.34,.63], "Openness to Experience":[3.44,.71] }
+};
+const CAPS = ["strongly disagree","disagree","neutral","agree","strongly agree"];
+
+const responses = new Array(60).fill(0);
+const itemsEl = document.getElementById('items');
+const $ = id => document.getElementById(id);
+
+ITEMS.forEach((text, i) => {
+  const n = i + 1;
+  const div = document.createElement('div');
+  div.className = 'item'; div.id = 'item-' + n;
+  let opts = '';
+  for (let v = 1; v <= 5; v++){
+    opts += `<label title="${CAPS[v-1]}"><input type="radio" name="q${n}" value="${v}">
+      <span class="num">${v}</span></label>`;
+  }
+  div.innerHTML = `<div class="q"><span class="n">${n}</span>${text}</div><div class="opts">${opts}</div>`;
+  itemsEl.appendChild(div);
+});
+
+itemsEl.addEventListener('change', e => {
+  if (e.target.name && e.target.name[0] === 'q'){
+    const n = parseInt(e.target.name.slice(1), 10);
+    responses[n - 1] = parseInt(e.target.value, 10);
+    document.getElementById('item-' + n).classList.remove('missing');
+    updateProgress();
+  }
+});
+
+function updateProgress(){
+  const done = responses.filter(v => v > 0).length;
+  $('pcount').textContent = done;
+  $('pfill').style.width = (done / 60 * 100) + '%';
+}
+
+function facetScore(keys){
+  let sum = 0;
+  for (const k of keys){
+    const rev = k.endsWith('R');
+    const n = parseInt(rev ? k.slice(0, -1) : k, 10);
+    let v = responses[n - 1];
+    if (rev) v = 6 - v;
+    sum += v;
+  }
+  return sum / keys.length;
+}
+
+function computeScores(){
+  const fs = {};
+  for (const [f, keys] of Object.entries(FACETS)) fs[f] = facetScore(keys);
+  return FACTORS.map(fac => {
+    const items = fac.facets.flatMap(f => FACETS[f]);
+    return { ...fac, score: facetScore(items),
+             facetScores: fac.facets.map(f => ({ name:f, score:fs[f] })) };
+  });
+}
+
+function band(z){
+  if (z >= 1)    return { txt:"High",          col:"var(--ok)"   };
+  if (z >= 0.35) return { txt:"Above average",  col:"var(--ok)"   };
+  if (z > -0.35) return { txt:"Average",        col:"var(--muted)"};
+  if (z > -1)    return { txt:"Below average",  col:"var(--warn)" };
+  return               { txt:"Low",            col:"var(--low)"  };
+}
+function pct(z){
+  const t = 1 / (1 + 0.2316419 * Math.abs(z));
+  const d = 0.3989423 * Math.exp(-z * z / 2);
+  let p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+  p = z > 0 ? 1 - p : p;
+  return Math.min(99, Math.max(1, Math.round(p * 100)));
+}
+
+let chart = null;
+function showResults(){
+  const norms = NORMS[$('normGroup').value];
+  const scores = computeScores();
+  const wrap = $('factors');
+  wrap.innerHTML = '';
+
+  for (const f of scores){
+    const [m, sd] = norms[f.name];
+    const z = (f.score - m) / sd;
+    const b = band(z), p = pct(z);
+    const el = document.createElement('div');
+    el.className = 'factor';
+    const facetRows = f.facetScores.map(ft =>
+      `<div class="facet"><span>${ft.name}</span><span class="fs">${ft.score.toFixed(2)}</span></div>`).join('');
+    el.innerHTML = `
+      <div class="head"><span class="name">${f.name} <small>(${f.code})</small></span>
+        <span class="score">${f.score.toFixed(2)}<small> / 5</small></span></div>
+      <div class="track">
+        <div class="fill" style="width:${(f.score/5*100).toFixed(1)}%; background:${b.col}"></div>
+        <div class="norm" style="left:${(m/5*100).toFixed(1)}%" title="group average ${m.toFixed(2)}"></div>
+      </div>
+      <div class="band"><b style="color:${b.col}">${b.txt}</b> · ~${p}th percentile · group avg ${m.toFixed(2)}</div>
+      <details><summary>Facets</summary>${facetRows}</details>`;
+    wrap.appendChild(el);
+  }
+
+  const st = getComputedStyle(document.documentElement);
+  const accent = st.getPropertyValue('--accent').trim();
+  const grid = st.getPropertyValue('--border').trim();
+  const fg = st.getPropertyValue('--muted').trim();
+  if (typeof Chart !== 'undefined'){
+    if (chart) chart.destroy();
+    chart = new Chart($('radar'), {
+      type:'radar',
+      data:{ labels: scores.map(f => f.code),
+        datasets:[{ label:'Your score', data: scores.map(f => +f.score.toFixed(2)),
+          borderColor:accent, backgroundColor:accent + '33', borderWidth:2,
+          pointBackgroundColor:accent, pointRadius:3 }]},
+      options:{ responsive:true, animation:{ duration:600 },
+        scales:{ r:{ min:1, max:5, ticks:{ stepSize:1, color:fg, backdropColor:'transparent', font:{ size:10 } },
+          grid:{ color:grid }, angleLines:{ color:grid },
+          pointLabels:{ color:fg, font:{ size:13, weight:'600' } } } },
+        plugins:{ legend:{ display:false },
+          tooltip:{ callbacks:{ title: it => scores[it[0].dataIndex].name,
+            label: it => 'Score ' + it.formattedValue + ' / 5' } } } }
+    });
+  } else {
+    $('radar').replaceWith(Object.assign(document.createElement('p'),
+      { className:'hint', textContent:'(The radar chart needs a network connection; the bar scores above are complete on their own.)' }));
+  }
+
+  $('quiz').hidden = true; $('intro-head').hidden = true;
+  $('results').hidden = false;
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+$('score').onclick = () => {
+  const missing = [];
+  responses.forEach((v, i) => { if (!v) missing.push(i + 1); });
+  document.querySelectorAll('.item.missing').forEach(el => el.classList.remove('missing'));
+  if (missing.length){
+    missing.forEach(n => document.getElementById('item-' + n).classList.add('missing'));
+    $('quizErr').textContent = `Please answer every item — ${missing.length} left (first is #${missing[0]}).`;
+    $('quizErr').hidden = false;
+    document.getElementById('item-' + missing[0]).scrollIntoView({ behavior:'smooth', block:'center' });
+    return;
+  }
+  $('quizErr').hidden = true;
+  showResults();
+};
+
+$('restart').onclick = () => {
+  $('results').hidden = true; $('quiz').hidden = false; $('intro-head').hidden = false;
+  window.scrollTo({ top:0 });
+};
+$('print').onclick = () => window.print();
+
+$('clear').onclick = () => {
+  if (!confirm('Clear all answers?')) return;
+  responses.fill(0);
+  document.querySelectorAll('.opts input').forEach(i => i.checked = false);
+  document.querySelectorAll('.item.missing').forEach(el => el.classList.remove('missing'));
+  $('quizErr').hidden = true; updateProgress();
+};
+
+$('fillRandom').onclick = () => {
+  for (let n = 1; n <= 60; n++){
+    if (!responses[n - 1]){
+      const v = 1 + Math.floor(Math.random() * 5);
+      responses[n - 1] = v;
+      const inp = document.querySelector(`input[name="q${n}"][value="${v}"]`);
+      if (inp) inp.checked = true;
+    }
+  }
+  document.querySelectorAll('.item.missing').forEach(el => el.classList.remove('missing'));
+  $('quizErr').hidden = true; updateProgress();
+};
+
+updateProgress();
+</script>
